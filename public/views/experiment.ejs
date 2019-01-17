@@ -30,7 +30,7 @@
     console.log('    input data:', inputData)
     if ( inputData.generation>=0 && inputData.chain>=0 && (inputData.generation==0 || inputData.data.length > 0)) {
       dataOk = true
-      if (inputData.chain%2==1) {
+      if (inputData.chain%2==0) {
         condition = 'dtd';
         console.log('    condition:', condition)
       } else {

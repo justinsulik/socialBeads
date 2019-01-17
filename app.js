@@ -19,10 +19,10 @@ const express = require('express'),
   {makeCode} = require('./helper/codeString.js');
 
 // --- INSTANTIATE THE APP
-const studyName = 'batch1';
-const maxChains = 20;
+const studyName = 'demo';
+const maxChains = 1;
 const maxGenerations = 20;
-const timeOut = 10;
+const timeOut = 0;
 const app = express();
 const PORT = process.env.PORT || 5000;
 app.use(
@@ -164,23 +164,26 @@ app.post('/e3PlV5', (req, res, next) => {
   console.log(trialId, 'Preparing to save trial data...');
 
   // save all data
-  responses.save({
-      sessionId: sessionId,
-      trialData: data,
-      trialId: trialId,
-      studyName: studyName,
-  });
+  // DISABLED FOR DEMO
+  // responses.save({
+  //     sessionId: sessionId,
+  //     trialData: data,
+  //     trialId: trialId,
+  //     studyName: studyName,
+  // });
 
   // extract the beads decision for later social presentation
-  data.sessionID = sessionId;
-  chain_decision.findBeadTrial(data)
-  .then(beadData => chain_decision.validateData(beadData),
-        errorHandler)
-  .then(beadData => chain_decision.save(beadData, studyName),
-        errorHandler)
-  .then(beadData => chain_position.complete(beadData, studyName),
-        errorHandler)
-  .then(res.status(200).end());
+  // DISABLED FOR DEMO
+  // data.sessionID = sessionId;
+  // chain_decision.findBeadTrial(data)
+  // .then(beadData => chain_decision.validateData(beadData),
+  //       errorHandler)
+  // .then(beadData => chain_decision.save(beadData, studyName),
+  //       errorHandler)
+  // .then(beadData => chain_position.complete(beadData, studyName),
+  //       errorHandler)
+  // .then(res.status(200).end());
+  res.status(200).end();
 });
 
 // --- VOID CHAIN POSITION IF WINDOW CLOSED
