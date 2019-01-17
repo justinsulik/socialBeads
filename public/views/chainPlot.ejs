@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <script language="javascript" src="libraries/d3.min.js"></script>
+    <script language="javascript" src="libraries/lodash.min.js"></script>
+    <script language="javascript" src="libraries/jquery-3.2.1.min.js"></script>
+    <script language="javascript" src="controllers/test_chain_position.js"></script>
+    <title>Chain plot</title>
+  </head>
+  <body>
+    <div id="svgContainer" style="border: 1px solid black">
+
+    </div>
+    <div id="buttonContainer">
+    </div>
+  </body>
+  <script>
+
+  var chainData = <%- chainData %>
+  var test = <%- test %>
+  var maxChains = 20;
+  var maxGenerations = 20;
+  console.log(chainData);
+  if(test){
+    $('#buttonContainer').html('<button id="add_slot">Add slot</button>')
+    $('button').on('click', function(e){
+      candidate = getCandidate(chainData, maxChains, maxGenerations);
+      console.log('candidate: ', candidate)
+      candidate.completed = 'new'
+      if(!chainData[candidate.chain]){
+        chainData[candidate.chain] = {}
+      }
+      chainData[candidate.chain][candidate.generation] = candidate
+      drawPlot();
+    })
+  }
+
+  function getData(dataObject){
+
+    var dataList = _.reduce(dataObject, (acc, generations, chain)=>{
+
+      var n = _.map(generations, (slotData, generation)=>{
+        slotData.generation = generation
+        slotData.chain = chain
+        acc.push(slotData)
+      });
+
+      return acc
+
+    }, []);
+    return dataList;
+
+  }
+
+
+  //sizing
+  var containerSize = {width: 800, height: 800};
+  var margin = {left: 50, right: 50, top: 50, bottom: 50};
+  var chartSize = {width: containerSize.width-margin.left-margin.right, height: containerSize.height-margin.top-margin.bottom};
+  var generations = maxGenerations;
+  var chains = maxChains;
+
+  //set up svg
+  var svg = d3.select("#svgContainer").append("svg")
+              .attr("width", containerSize.width)
+              .attr("height", containerSize.height);
+  var plot = svg.append("g")
+    .attr('id', 'plotArea')
+    .attr('transform', 'translate('+margin.left+','+margin.top+')');
+
+  //x scale
+  var x = d3.scaleLinear()
+      .domain([0, chains])
+      .rangeRound([0, chartSize.width]);
+
+  //y scale
+  var y = d3.scaleLinear()
+      .domain([0, generations])
+      .rangeRound([chartSize.height, 0]);
+
+
+  // attribute functions
+
+  function blockFill(d){
+    if (d.completed == 'incomplete'){
+      return '#ABF7E2';
+    }
+    if (d.completed == 'new') {
+      return '#FEF601'
+    } else {
+      return '#F08080'
+    }
+  }
+
+
+  function drawPlot(){
+
+    // clear text and rectangles
+
+    plot.selectAll("rect").remove()
+    plot.selectAll("text").remove()
+
+    // rectangles for bar plot
+
+    plot.selectAll("rect")
+          .data(getData(chainData))
+          .enter()
+            .append("rect")
+            .attr("fill", function(d){
+              return blockFill(d)
+            })
+            .attr("stroke", '#E2E2E2')
+            .attr("x", function(d){
+              return x(d.chain)})
+            .attr("y", function(d){
+              return y(1+parseInt(d.generation))})
+            .attr("width", chartSize.width/chains)
+            .attr("height", chartSize.height/generations)
+
+    // text for # branches
+
+    plot.selectAll("text")
+          .data(getData(chainData))
+          .enter()
+            .append("text")
+            .attr("x", function(d){
+              return x(0.4+parseInt(d.chain))})
+            .attr("y", function(d){
+              return y(0.4+parseInt(d.generation))})
+            .attr("fill", "black")
+            .attr("font-size", "20px")
+            .attr("font-family", "sans-serif")
+            .text(function(d){return d.branch})
+
+  }
+
+  // axes
+
+  var xAxis = d3.axisBottom(x);
+  xAxis.tickSize(5);
+
+  var axisTranslate = margin.top+chartSize.height;
+
+  d3.select('svg').append('g')
+  .attr('transform', 'translate('+margin.left+', '+axisTranslate+')')
+  .classed('x axis', true)
+  .call(xAxis);
+
+  var yAxis = d3.axisLeft(y);
+  yAxis.tickSize(5);
+
+  d3.select('svg').append('g')
+  .attr('transform', 'translate('+margin.left+', '+margin.top+')')
+  .classed('y axis', true)
+  .call(yAxis);
+
+  window.onload = function(e) {
+    drawPlot()
+  }
+
+  </script>
+</html>
